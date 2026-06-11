@@ -3,8 +3,7 @@ const crypto = require('crypto');
 const config = require('../config');
 const logger = require('./logger');
 
-const BASE_URL = 'https://api-demo.bybit.com';
-
+const BASE_URL =  'https://testnet.binancefuture.com/fapi/v1/time' ;
 class Exchange {
     constructor() {
         this.paper     = config.paperTrading;

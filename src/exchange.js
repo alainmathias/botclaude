@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const config = require('../config');
 const logger = require('./logger');
 
-const BASE_URL = 'https://demo-api.bybit.com';
+const BASE_URL = 'https://api-demo.bybit.com';
 
 class Exchange {
     constructor() {

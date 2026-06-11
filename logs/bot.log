@@ -1,0 +1,39 @@
+{"level":"info","message":"═══════════════════════════════════════════","timestamp":"2026-06-05T09:53:09.207Z"}
+{"level":"info","message":"    🤖 BTC SCALPING BOT — Démarrage","timestamp":"2026-06-05T09:53:09.239Z"}
+{"level":"info","message":"    Symbole : BTC/USDT","timestamp":"2026-06-05T09:53:09.241Z"}
+{"level":"info","message":"    TF      : 1m","timestamp":"2026-06-05T09:53:09.243Z"}
+{"level":"info","message":"    Capital : $1000","timestamp":"2026-06-05T09:53:09.244Z"}
+{"level":"info","message":"    Mode    : 📄 PAPER TRADING","timestamp":"2026-06-05T09:53:09.247Z"}
+{"level":"info","message":"═══════════════════════════════════════════","timestamp":"2026-06-05T09:53:09.248Z"}
+{"level":"info","message":"Exchange connecté: BINANCE | Mode: 📄 PAPER","timestamp":"2026-06-05T09:53:15.102Z"}
+{"level":"info","message":"[LONDON] Prix: $62919.61 | RSI: 52.4 | Score: 48 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T09:53:15.673Z"}
+{"level":"info","message":"[LONDON] Prix: $62848.02 | RSI: 45.6 | Score: 13 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T09:54:16.148Z"}
+{"level":"info","message":"[LONDON] Prix: $62908.00 | RSI: 51.6 | Score: 58 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T09:55:16.628Z"}
+{"level":"info","message":"Interruption reçue — arrêt propre...","timestamp":"2026-06-05T09:56:03.982Z"}
+{"level":"info","message":"═══════════════════════════════════════════","timestamp":"2026-06-05T09:57:53.494Z"}
+{"level":"info","message":"    🤖 BTC SCALPING BOT — Démarrage","timestamp":"2026-06-05T09:57:53.503Z"}
+{"level":"info","message":"    Symbole : BTC/USDT","timestamp":"2026-06-05T09:57:53.505Z"}
+{"level":"info","message":"    TF      : 1m","timestamp":"2026-06-05T09:57:53.507Z"}
+{"level":"info","message":"    Capital : $1000","timestamp":"2026-06-05T09:57:53.509Z"}
+{"level":"info","message":"    Mode    : 📄 PAPER TRADING","timestamp":"2026-06-05T09:57:53.511Z"}
+{"level":"info","message":"═══════════════════════════════════════════","timestamp":"2026-06-05T09:57:53.512Z"}
+{"level":"info","message":"Exchange connecté: BINANCE | Mode: 📄 PAPER","timestamp":"2026-06-05T09:57:59.523Z"}
+{"level":"info","message":"[LONDON] Prix: $62848.01 | RSI: 45.5 | Score: 5 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T09:58:00.087Z"}
+{"level":"info","message":"[LONDON] Prix: $62831.38 | RSI: 43.9 | Score: 5 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T09:59:00.588Z"}
+{"level":"info","message":"[LONDON] Prix: $62865.33 | RSI: 48.3 | Score: 5 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T10:00:01.763Z"}
+{"level":"info","message":"[LONDON] Prix: $62925.50 | RSI: 55.0 | Score: 48 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T10:01:02.265Z"}
+{"level":"info","message":"[LONDON] Prix: $62923.99 | RSI: 54.4 | Score: 60 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T10:02:03.110Z"}
+{"level":"info","message":"[LONDON] Prix: $62840.00 | RSI: 46.4 | Score: 15 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T10:03:04.291Z"}
+{"level":"info","message":"[LONDON] Prix: $62839.34 | RSI: 46.4 | Score: 5 | Signal: NONE | Régime: RANGE","timestamp":"2026-06-05T10:04:05.621Z"}
+{"level":"info","message":"[LONDON] Prix: $62788.01 | RSI: 41.6 | Score: 25 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:05:06.599Z"}
+{"level":"info","message":"[LONDON] Prix: $62747.42 | RSI: 38.3 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:06:07.611Z"}
+{"level":"info","message":"[LONDON] Prix: $62706.81 | RSI: 36.4 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:07:08.222Z"}
+{"level":"info","message":"[LONDON] Prix: $62683.42 | RSI: 34.6 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:08:08.731Z"}
+{"level":"info","message":"[LONDON] Prix: $62718.34 | RSI: 38.9 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:09:09.270Z"}
+{"level":"info","message":"[LONDON] Prix: $62711.99 | RSI: 39.9 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:10:09.817Z"}
+{"level":"info","message":"[LONDON] Prix: $62681.59 | RSI: 37.1 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:11:10.486Z"}
+{"level":"info","message":"[LONDON] Prix: $62742.01 | RSI: 44.0 | Score: 15 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:12:11.040Z"}
+{"level":"info","message":"[LONDON] Prix: $62796.13 | RSI: 49.8 | Score: 50 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:13:11.561Z"}
+{"level":"info","message":"[LONDON] Prix: $62739.68 | RSI: 44.2 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:14:12.061Z"}
+{"level":"info","message":"[LONDON] Prix: $62726.01 | RSI: 42.9 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:15:12.649Z"}
+{"level":"info","message":"[LONDON] Prix: $62673.94 | RSI: 38.6 | Score: 40 | Signal: NONE | Régime: TREND_DOWN","timestamp":"2026-06-05T10:16:13.158Z"}

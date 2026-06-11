@@ -1,0 +1,27 @@
+require('dotenv').config();
+
+module.exports = {
+    exchange:          'binance',
+    apiKey:            process.env.API_KEY    || '',
+    apiSecret:         process.env.API_SECRET || '',
+    symbol:            process.env.SYMBOL     || 'BTC/USDT',
+    timeframe:         process.env.TIMEFRAME  || '1m',
+    paperTrading:      process.env.PAPER_TRADING !== 'false',
+    capital:           parseFloat(process.env.CAPITAL)          || 1000,
+    riskPerTrade:      parseFloat(process.env.RISK_PER_TRADE)   || 1.5,
+    maxTradesPerSession: parseInt(process.env.MAX_TRADES)       || 5,
+    stopLossPct:       parseFloat(process.env.STOP_LOSS_PCT)    || 0.4,
+    tp1Pct:            parseFloat(process.env.TP1_PCT)          || 0.6,
+    tp2Pct:            parseFloat(process.env.TP2_PCT)          || 1.2,
+    emaFast:   9,
+    emaSlow:   21,
+    emaTrend:  50,
+    rsiPeriod: 14,
+    macdFast:  12,
+    macdSlow:  26,
+    macdSignal: 9,
+    atrPeriod: 14,
+    telegramToken:   process.env.TELEGRAM_TOKEN   || '',
+    telegramChatId:  process.env.TELEGRAM_CHAT_ID || '',
+    telegramAlerts:  process.env.TELEGRAM_ALERTS === 'true',
+};

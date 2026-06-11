@@ -1,0 +1,19 @@
+{
+  "name": "btc-scalping-bot",
+  "version": "1.0.0",
+  "description": "Bot de scalping BTC/USD avec EMA, RSI, MACD, ATR",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "paper": "node src/index.js --paper",
+    "backtest": "node src/backtest.js"
+  },
+  "dependencies": {
+    "technicalindicators": "^3.1.0",
+    "ccxt": "^4.3.0",
+    "dotenv": "^16.4.0",
+    "chalk": "^4.1.2",
+    "winston": "^3.11.0",
+    "node-telegram-bot-api": "^0.66.0"
+  }
+}

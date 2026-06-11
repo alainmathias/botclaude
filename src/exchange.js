@@ -3,73 +3,81 @@ const crypto = require('crypto');
 const config = require('../config');
 const logger = require('./logger');
 
-const BASE_URL = 'https://api.binance.com/api/v3/ticker/';
+const BASE_URL = 'https://api-api.bybit.com';
 
 class Exchange {
     constructor() {
         this.paper     = config.paperTrading;
         this.apiKey    = config.apiKey;
         this.apiSecret = config.apiSecret;
+        this.recvWindow = 5000;
 
-        // Instance axios avec headers communs
         this.http = axios.create({
             baseURL: BASE_URL,
             timeout: 10000,
-            headers: {
-                'X-MBX-APIKEY': this.apiKey,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
+            headers: { 'Content-Type': 'application/json' },
         });
 
-        // Intercepteur — log chaque erreur HTTP proprement
         this.http.interceptors.response.use(
             res => res,
             err => {
-                const msg = err.response?.data?.msg || err.message;
-                logger.error(`Binance API error: ${msg}`);
+                const msg = err.response?.data?.retMsg || err.message;
+                logger.error(`Bybit API error: ${msg}`);
                 return Promise.reject(new Error(msg));
             }
         );
     }
 
-    // ── SIGNATURE HMAC SHA256 pour endpoints privés ──────────────────────────
+    // ── SIGNATURE Bybit (HMAC SHA256) ─────────────────────────────────────────
+    // Format: timestamp + apiKey + recvWindow + queryString
     _sign(params) {
-        const query     = new URLSearchParams({ ...params, timestamp: Date.now() }).toString();
+        const timestamp = Date.now().toString();
+        const query     = new URLSearchParams(params).toString();
+        const payload   = timestamp + this.apiKey + this.recvWindow + query;
         const signature = crypto
             .createHmac('sha256', this.apiSecret)
-            .update(query)
+            .update(payload)
             .digest('hex');
-        return `${query}&signature=${signature}`;
+        return { timestamp, signature, query };
     }
 
-    // ── INIT : vérifie la connexion ───────────────────────────────────────────
+    _authHeaders(timestamp, signature) {
+        return {
+            'X-BAPI-API-KEY':     this.apiKey,
+            'X-BAPI-TIMESTAMP':   timestamp,
+            'X-BAPI-SIGN':        signature,
+            'X-BAPI-RECV-WINDOW': String(this.recvWindow),
+        };
+    }
+
+    // ── INIT ──────────────────────────────────────────────────────────────────
     async init() {
         try {
-            const res = await this.http.get('/api/v3/ping');
-            logger.info(`Binance connecté ✅ | Mode: ${this.paper ? '📄 PAPER' : '💰 LIVE'}`);
-
-            // Vérif synchronisation horloge
-            const time = await this.http.get('/api/v3/time');
-            const diff = Math.abs(Date.now() - time.data.serverTime);
-            if (diff > 1000) logger.warn(`Décalage horloge: ${diff}ms — peut causer des erreurs de signature`);
+            const res = await this.http.get('/v5/market/time');
+            if (res.data.retCode === 0) {
+                logger.info(`Bybit connecté ✅ | Mode: ${this.paper ? '📄 PAPER' : '💰 LIVE'}`);
+            }
         } catch (err) {
-            logger.warn(`Binance hors ligne, mode paper forcé: ${err.message}`);
+            logger.warn(`Bybit hors ligne, mode paper forcé: ${err.message}`);
             this.paper = true;
         }
     }
 
     // ── BOUGIES OHLCV ─────────────────────────────────────────────────────────
-    // GET /api/v3/klines
+    // GET /v5/market/kline
     async getCandles(symbol, timeframe, limit = 120) {
         try {
-            // Binance attend BTCUSDT (sans slash)
-            const pair = symbol.replace('/', '');
-            const res  = await this.http.get('/api/v3/klines', {
-                params: { symbol: pair, interval: timeframe, limit },
+            const pair     = symbol.replace('/', '');  // BTC/USDT → BTCUSDT
+            const interval = this._tfToBybit(timeframe);
+            const res      = await this.http.get('/v5/market/kline', {
+                params: { category: 'spot', symbol: pair, interval, limit },
             });
 
-            return res.data.map(k => ({
-                timestamp: k[0],
+            if (res.data.retCode !== 0) throw new Error(res.data.retMsg);
+
+            // Bybit retourne les bougies en ordre décroissant → inverser
+            return res.data.result.list.reverse().map(k => ({
+                timestamp: parseInt(k[0]),
                 open:      parseFloat(k[1]),
                 high:      parseFloat(k[2]),
                 low:       parseFloat(k[3]),
@@ -82,19 +90,22 @@ class Exchange {
         }
     }
 
-    // ── TICKER (bid/ask/last) ─────────────────────────────────────────────────
-    // GET /api/v3/ticker/bookTicker  +  /api/v3/ticker/price
+    // ── TICKER bid/ask/last ───────────────────────────────────────────────────
+    // GET /v5/market/tickers
     async getTicker(symbol) {
         try {
             const pair = symbol.replace('/', '');
-            const [book, price] = await Promise.all([
-                this.http.get('/api/v3/ticker/bookTicker', { params: { symbol: pair } }),
-                this.http.get('/api/v3/ticker/price',      { params: { symbol: pair } }),
-            ]);
+            const res  = await this.http.get('/v5/market/tickers', {
+                params: { category: 'spot', symbol: pair },
+            });
+
+            if (res.data.retCode !== 0) throw new Error(res.data.retMsg);
+
+            const t = res.data.result.list[0];
             return {
-                bid:  parseFloat(book.data.bidPrice),
-                ask:  parseFloat(book.data.askPrice),
-                last: parseFloat(price.data.price),
+                bid:  parseFloat(t.bid1Price),
+                ask:  parseFloat(t.ask1Price),
+                last: parseFloat(t.lastPrice),
             };
         } catch (err) {
             logger.error(`getTicker error: ${err.message}`);
@@ -103,17 +114,22 @@ class Exchange {
     }
 
     // ── SOLDE ─────────────────────────────────────────────────────────────────
-    // GET /api/v3/account  (signé)
+    // GET /v5/account/wallet-balance  (signé)
     async getBalance() {
         if (this.paper) return null;
         try {
-            const query = this._sign({});
-            const res   = await this.http.get(`/api/v3/account?${query}`);
+            const params = { accountType: 'UNIFIED' };
+            const { timestamp, signature, query } = this._sign(params);
+            const res = await this.http.get(`/v5/account/wallet-balance?${query}`, {
+                headers: this._authHeaders(timestamp, signature),
+            });
 
-            // Retourne un objet { BTC: x, USDT: y, ... } pour les soldes > 0
-            return res.data.balances.reduce((acc, b) => {
-                const free = parseFloat(b.free);
-                if (free > 0) acc[b.asset] = free;
+            if (res.data.retCode !== 0) throw new Error(res.data.retMsg);
+
+            const coins = res.data.result.list[0]?.coin || [];
+            return coins.reduce((acc, c) => {
+                const free = parseFloat(c.availableToWithdraw);
+                if (free > 0) acc[c.coin] = free;
                 return acc;
             }, {});
         } catch (err) {
@@ -123,29 +139,43 @@ class Exchange {
     }
 
     // ── PASSER UN ORDRE ───────────────────────────────────────────────────────
-    // POST /api/v3/order  (signé)
+    // POST /v5/order/create  (signé)
     async placeOrder(symbol, side, amount, price = null) {
         if (this.paper) {
             logger.info(`[PAPER] ${side.toUpperCase()} ${amount} ${symbol} @ ${price || 'MARKET'}`);
-            return { id: `PAPER_${Date.now()}`, side, origQty: amount, price, status: 'FILLED' };
+            return {
+                id: `PAPER_${Date.now()}`,
+                side, qty: amount, price,
+                status: 'Filled',
+            };
         }
 
         try {
-            const pair   = symbol.replace('/', '');
-            const type   = price ? 'LIMIT' : 'MARKET';
-            const params = {
+            const pair = symbol.replace('/', '');
+            const body = {
+                category:  'spot',
                 symbol:    pair,
-                side:      side.toUpperCase(),
-                type,
-                quantity:  amount,
+                side:      side.charAt(0).toUpperCase() + side.slice(1).toLowerCase(), // Buy / Sell
+                orderType: price ? 'Limit' : 'Market',
+                qty:       String(amount),
                 ...(price ? { price: price.toFixed(2), timeInForce: 'GTC' } : {}),
             };
 
-            const query = this._sign(params);
-            const res   = await this.http.post(`/api/v3/order?${query}`);
+            const timestamp = Date.now().toString();
+            const payload   = timestamp + this.apiKey + this.recvWindow + JSON.stringify(body);
+            const signature = crypto
+                .createHmac('sha256', this.apiSecret)
+                .update(payload)
+                .digest('hex');
 
-            logger.info(`Ordre passé: ${side.toUpperCase()} ${amount} @ ${price || 'MARKET'} → ID: ${res.data.orderId}`);
-            return res.data;
+            const res = await this.http.post('/v5/order/create', body, {
+                headers: this._authHeaders(timestamp, signature),
+            });
+
+            if (res.data.retCode !== 0) throw new Error(res.data.retMsg);
+
+            logger.info(`Ordre: ${side.toUpperCase()} ${amount} @ ${price || 'MARKET'} → ID: ${res.data.result.orderId}`);
+            return res.data.result;
         } catch (err) {
             logger.error(`placeOrder error: ${err.message}`);
             return null;
@@ -153,13 +183,25 @@ class Exchange {
     }
 
     // ── ANNULER UN ORDRE ──────────────────────────────────────────────────────
-    // DELETE /api/v3/order  (signé)
+    // POST /v5/order/cancel  (signé)
     async cancelOrder(orderId, symbol) {
         if (this.paper) return true;
         try {
-            const pair  = symbol.replace('/', '');
-            const query = this._sign({ symbol: pair, orderId });
-            await this.http.delete(`/api/v3/order?${query}`);
+            const pair = symbol.replace('/', '');
+            const body = { category: 'spot', symbol: pair, orderId };
+
+            const timestamp = Date.now().toString();
+            const payload   = timestamp + this.apiKey + this.recvWindow + JSON.stringify(body);
+            const signature = crypto
+                .createHmac('sha256', this.apiSecret)
+                .update(payload)
+                .digest('hex');
+
+            const res = await this.http.post('/v5/order/cancel', body, {
+                headers: this._authHeaders(timestamp, signature),
+            });
+
+            if (res.data.retCode !== 0) throw new Error(res.data.retMsg);
             logger.info(`Ordre annulé: ${orderId}`);
             return true;
         } catch (err) {
@@ -172,28 +214,28 @@ class Exchange {
     async getOrder(orderId, symbol) {
         if (this.paper) return null;
         try {
-            const pair  = symbol.replace('/', '');
-            const query = this._sign({ symbol: pair, orderId });
-            const res   = await this.http.get(`/api/v3/order?${query}`);
-            return res.data;
+            const pair   = symbol.replace('/', '');
+            const params = { category: 'spot', symbol: pair, orderId };
+            const { timestamp, signature, query } = this._sign(params);
+            const res = await this.http.get(`/v5/order/realtime?${query}`, {
+                headers: this._authHeaders(timestamp, signature),
+            });
+            if (res.data.retCode !== 0) throw new Error(res.data.retMsg);
+            return res.data.result.list[0] || null;
         } catch (err) {
             logger.error(`getOrder error: ${err.message}`);
             return null;
         }
     }
 
-    // ── ORDRES OUVERTS ────────────────────────────────────────────────────────
-    async getOpenOrders(symbol) {
-        if (this.paper) return [];
-        try {
-            const pair  = symbol.replace('/', '');
-            const query = this._sign({ symbol: pair });
-            const res   = await this.http.get(`/api/v3/openOrders?${query}`);
-            return res.data;
-        } catch (err) {
-            logger.error(`getOpenOrders error: ${err.message}`);
-            return [];
-        }
+    // ── CONVERSION TIMEFRAME ──────────────────────────────────────────────────
+    // Bybit: 1 3 5 15 30 60 120 240 360 720 D W M
+    _tfToBybit(tf) {
+        const map = {
+            '1m': '1', '3m': '3', '5m': '5', '15m': '15',
+            '30m': '30', '1h': '60', '2h': '120', '4h': '240',
+        };
+        return map[tf] || '1';
     }
 }
 
